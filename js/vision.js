@@ -76,8 +76,17 @@
 	Listener.call(this);
 	this.heading = heading;
 	this.halfAngle = halfAngle;
+	this.delta = Math.PI/50;
     }
     Radar.prototype = new Listener();
+    Radar.prototype.left = function(){
+	this.heading -= this.delta;
+	this.notifyAll();
+    }
+    Radar.prototype.right = function(){
+	this.heading += this.delta;
+	this.notifyAll();
+    }
 
     var RadarView = function(canvas, model){
 	this.context = canvas.getContext('2d');
@@ -106,7 +115,6 @@
 	context.arc(x0, y0, radius, heading - halfAngle, heading + halfAngle);
 	context.closePath();
 	context.stroke();
-
     }
 
     var visionCanvas = document.getElementById('vision');
@@ -117,4 +125,20 @@
 
     var radar = new Radar(-Math.PI/6, Math.PI/3);
     new RadarView(topCanvas, radar);
+
+    var body = document.getElementsByTagName('body')[0];
+    body.addEventListener('keydown', function(event){
+	if (event.keyCode == 37) { // left
+	    radar.left();
+	}
+	if (event.keyCode == 38) { // up
+	    console.log(event);
+	}
+	if (event.keyCode == 39) { // right
+	    radar.right();
+	}
+	if (event.keyCode == 40) { // down
+	    console.log(event);
+	}
+    });
 })();
