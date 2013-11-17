@@ -25,9 +25,24 @@
 	return '#' + hex  +  hex + hex;
     }
 
+    var Listener = function(){
+	this.listeners = [];
+    }
+    Listener.prototype.addListener = function(listener){
+	this.listeners.push(listener);
+    }
+    Listener.prototype.notifyAll = function(){
+	this.listeners.forEach(this.notify.bind(this));
+    }
+    Listener.prototype.notify = function(listener){
+	listener.call(null, this);
+    }
+
     var Vision = function() {
+	Listener.call(this);
 	this.data = [ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 ];
     }
+    Vision.prototype = new Listener();
     Vision.prototype.colorData = function(){
 	return this.data.map(toRgb);
     }
@@ -37,6 +52,7 @@
 	this.width = canvas.width;
 	this.height = canvas.height;
 	this.model = model;
+	this.model.addListener(this.update.bind(this));
 	this.update();
     }
     VisionView.prototype.update = function(){
