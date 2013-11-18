@@ -126,12 +126,42 @@
 	context.fillRect(0, 0, this.width, this.height);
     }
 
+    var Obstacle = function(x, y, radius){
+	Listener.call(this);
+	this.x = x;
+	this.y = y;
+	this.radius = radius;
+    }
+    Obstacle.prototype = new Listener();
+
+    var ObstacleView = function(canvas, model){
+	this.context = canvas.getContext('2d');
+	this.model = model;
+	this.model.addListener(this.update.bind(this));
+	this.update();
+    }
+    ObstacleView.prototype.update = function(){
+	var context = this.context;
+
+	context.fillStyle = 'green';
+	context.beginPath();
+	context.moveTo(this.model.x, this.model.y);
+	context.arc(this.model.x, this.model.y, this.model.radius, 0, 2 * Math.PI);
+	context.closePath();
+	context.fill();
+    }
+
     var Game = function(radar){
 	Listener.call(this);
 	this.radar = radar;
 	this.radar.addListener(this.notifyAll.bind(this));
+	this.obstacles = [];
     }
     Game.prototype = new Listener();
+    Game.prototype.addObstacle = function(obstacle){
+	this.obstacles.push(obstacle);
+	obstacle.addListener(this.notifyAll.bind(this));
+    }
 
     var GameView = function(canvas, model){
 	this.views = [];
@@ -143,6 +173,9 @@
     }
     GameView.prototype.initialize = function(){
 	this.views.push(new BackgroundView(this.canvas));
+	this.model.obstacles.forEach(function(obstacle){
+	    this.views.push(new ObstacleView(this.canvas, obstacle));
+	}.bind(this));
 	this.views.push(new RadarView(this.canvas, this.model.radar));
     }
     GameView.prototype.update = function(){
@@ -150,7 +183,6 @@
 	    view.update();
 	});
     }
-
     var visionCanvas = document.getElementById('vision');
     var topCanvas = document.getElementById('top');
 
@@ -160,6 +192,7 @@
     var radar = new Radar(topCanvas.width/2, topCanvas.height/2, -Math.PI/6, Math.min(topCanvas.width/2, topCanvas.height/2) - 10, Math.PI/3);
 
     var game = new Game(radar);
+    game.addObstacle(new Obstacle(100, 100, 5));
     new GameView(topCanvas, game);
 
     var body = document.getElementsByTagName('body')[0];
