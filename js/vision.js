@@ -72,9 +72,12 @@
 
     }
 
-    var Radar = function(heading, halfAngle){
+    var Radar = function(x, y, heading, radius, halfAngle){
 	Listener.call(this);
+	this.x = x;
+	this.y = y;
 	this.heading = heading;
+	this.radius = radius;
 	this.halfAngle = halfAngle;
 	this.delta = Math.PI/50;
     }
@@ -103,9 +106,9 @@
 
 	var heading = this.model.heading;
 	var halfAngle = this.model.halfAngle;
-	var radius = Math.min(topCanvas.width/2, topCanvas.height/2) - 10;
-	var x0 = this.width/2;
-	var y0 = this.height/2;
+	var radius = this.model.radius;
+	var x0 = this.model.x;
+	var y0 = this.model.y;
 	var x1 = radius * Math.cos(heading + -halfAngle) + x0;
 	var y1 = radius * Math.sin(heading + -halfAngle) + y0;
 	context.strokeStyle = 'red';
@@ -123,7 +126,7 @@
     var vision = new Vision();
     new VisionView(visionCanvas, vision);
 
-    var radar = new Radar(-Math.PI/6, Math.PI/3);
+    var radar = new Radar(topCanvas.width/2, topCanvas.height/2, -Math.PI/6, Math.min(topCanvas.width/2, topCanvas.height/2) - 10, Math.PI/3);
     new RadarView(topCanvas, radar);
 
     var body = document.getElementsByTagName('body')[0];
