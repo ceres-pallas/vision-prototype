@@ -120,6 +120,33 @@
 	context.stroke();
     }
 
+    var Game = function(radar){
+	Listener.call(this);
+	this.radar = radar;
+	this.radar.addListener(this.notifyAll.bind(this));
+    }
+    Game.prototype = new Listener();
+
+    var GameView = function(canvas, model){
+	this.views = [];
+	this.canvas = canvas;
+	this.model = model;
+	this.model.addListener(this.update.bind(this));
+	this.initialize();
+	this.update();
+    }
+    GameView.prototype.initialize = function(){
+	this.views.push(new RadarView(this.canvas, this.model.radar));
+    }
+    GameView.prototype.update = function(){
+	var context = this.canvas.getContext('2d');
+	context.fillStyle = 'black';
+	context.fillRect(0, 0, this.width, this.height);
+	this.views.forEach(function(view){
+	    view.update();
+	});
+    }
+
     var visionCanvas = document.getElementById('vision');
     var topCanvas = document.getElementById('top');
 
@@ -127,7 +154,9 @@
     new VisionView(visionCanvas, vision);
 
     var radar = new Radar(topCanvas.width/2, topCanvas.height/2, -Math.PI/6, Math.min(topCanvas.width/2, topCanvas.height/2) - 10, Math.PI/3);
-    new RadarView(topCanvas, radar);
+
+    var game = new Game(radar);
+    new GameView(topCanvas, game);
 
     var body = document.getElementsByTagName('body')[0];
     body.addEventListener('keydown', function(event){
