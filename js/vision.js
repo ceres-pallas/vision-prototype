@@ -96,14 +96,9 @@
 	this.width = canvas.width;
 	this.height = canvas.height;
 	this.model = model;
-	this.model.addListener(this.update.bind(this));
-	this.update();
     }
     RadarView.prototype.update = function(){
 	var context = this.context;
-	context.fillStyle = 'black';
-	context.fillRect(0, 0, this.width, this.height);
-
 	var heading = this.model.heading;
 	var halfAngle = this.model.halfAngle;
 	var radius = this.model.radius;
@@ -118,6 +113,17 @@
 	context.arc(x0, y0, radius, heading - halfAngle, heading + halfAngle);
 	context.closePath();
 	context.stroke();
+    }
+
+    var BackgroundView = function(canvas){
+	this.context = canvas.getContext('2d');
+	this.width = canvas.width;
+	this.height = canvas.height;
+    }
+    BackgroundView.prototype.update = function(){
+	var context = this.context;
+	context.fillStyle = 'black';
+	context.fillRect(0, 0, this.width, this.height);
     }
 
     var Game = function(radar){
@@ -136,12 +142,10 @@
 	this.update();
     }
     GameView.prototype.initialize = function(){
+	this.views.push(new BackgroundView(this.canvas));
 	this.views.push(new RadarView(this.canvas, this.model.radar));
     }
     GameView.prototype.update = function(){
-	var context = this.canvas.getContext('2d');
-	context.fillStyle = 'black';
-	context.fillRect(0, 0, this.width, this.height);
 	this.views.forEach(function(view){
 	    view.update();
 	});
