@@ -154,24 +154,25 @@
     var Game = function(radar){
 	Listener.call(this);
 	this.radar = radar;
-	this.radar.addListener(this.notifyAll.bind(this));
 	this.obstacles = [];
     }
     Game.prototype = new Listener();
     Game.prototype.addObstacle = function(obstacle){
 	this.obstacles.push(obstacle);
-	obstacle.addListener(this.notifyAll.bind(this));
+	this.notifyAll();
     }
 
     var GameView = function(canvas, model){
 	this.views = [];
 	this.canvas = canvas;
 	this.model = model;
-	this.model.addListener(this.update.bind(this));
+	this.model.radar.addListener(this.update.bind(this));
+	this.model.addListener(this.initialize.bind(this));
 	this.initialize();
 	this.update();
     }
     GameView.prototype.initialize = function(){
+	this.views = [];
 	this.views.push(new BackgroundView(this.canvas));
 	this.model.obstacles.forEach(function(obstacle){
 	    this.views.push(new ObstacleView(this.canvas, obstacle));
@@ -209,5 +210,9 @@
 	if (event.keyCode == 40) { // down
 	    console.log(event);
 	}
+    });
+
+    topCanvas.addEventListener('click', function(event){
+	game.addObstacle(new Obstacle(event.offsetX, event.offsetY, 5));
     });
 })();
