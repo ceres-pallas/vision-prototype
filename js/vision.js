@@ -25,6 +25,14 @@
 	return '#' + hex  +  hex + hex;
     }
 
+    function angle(x, y) {
+	return Math.atan2(x, y);
+    }
+
+    function distance(dx, dy) {
+	return Math.sqrt(dx*dx + dy*dy);
+    }
+
     var Listener = function(){
 	this.listeners = [];
     }
@@ -45,6 +53,10 @@
     Vision.prototype = new Listener();
     Vision.prototype.colorData = function(){
 	return this.data.map(toRgb);
+    }
+    Vision.prototype.load = function(data) {
+	this.data = data;
+	this.notifyAll();
     }
 
     var VisionView = function(canvas, model){
@@ -151,15 +163,45 @@
 	context.fill();
     }
 
-    var Game = function(radar){
+    var Game = function(radar, vision){
 	Listener.call(this);
-	this.radar = radar;
 	this.obstacles = [];
+	this.radar = radar;
+	this.vision = vision;
+	this.radar.addListener(this.determineVision.bind(this));
+	this.determineVision();
     }
     Game.prototype = new Listener();
     Game.prototype.addObstacle = function(obstacle){
 	this.obstacles.push(obstacle);
+	this.determineVision();
 	this.notifyAll();
+    }
+    Game.prototype.determineVision = function(){
+	var visibles = [function(){return 0.0}];
+	var radar = this.radar;
+	this.obstacles.forEach(function(obstacle){
+	    var d = distance(obstacle.x - radar.x, obstacle.y - radar.y);
+	    var alpha = angle(obstacle.x - radar.x, obstacle.y - radar.y) - radar.heading;
+	    if (- radar.halfAngle <= alpha && alpha <= radar.halfAngle && d <= radar.radius) {
+		var dalpha = Math.acos(d/radar.radius);
+		visibles.push(function(angle){
+		    if (alpha - dalpha <= angle && angle <= alpha + dalpha) {
+			return 1 - d/radar.radius;
+		    }
+		    return 0.0;
+		});
+	    }
+	});
+	var angles = [];
+	var step = Math.PI/180;
+	for (var alpha = -radar.halfAngle; alpha < radar.halfAngle; alpha += step) {
+	    angles.push(alpha);
+	}
+	var data = angles.map(function(alpha){
+	    return Math.max.apply(null, visibles.map(function(f){ return f(alpha) }));
+	});
+	vision.load(data);
     }
 
     var GameView = function(canvas, model){
@@ -184,15 +226,16 @@
 	    view.update();
 	});
     }
-    var visionCanvas = document.getElementById('vision');
-    var topCanvas = document.getElementById('top');
 
+    var visionCanvas = document.getElementById('vision');
     var vision = new Vision();
     new VisionView(visionCanvas, vision);
 
+    var topCanvas = document.getElementById('top');
+
     var radar = new Radar(topCanvas.width/2, topCanvas.height/2, -Math.PI/6, Math.min(topCanvas.width/2, topCanvas.height/2) - 10, Math.PI/3);
 
-    var game = new Game(radar);
+    var game = new Game(radar, vision);
     game.addObstacle(new Obstacle(100, 100, 5));
     new GameView(topCanvas, game);
 
