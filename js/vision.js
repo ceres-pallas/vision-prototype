@@ -216,7 +216,7 @@
     GameView.prototype.initialize = function(){
 	this.views = [];
 	this.views.push(new BackgroundView(this.canvas));
-	this.model.obstacles.forEach(function(obstacle){
+	this.model.obstacles.forEach(function(obstacle, index){
 	    this.views.push(new ObstacleView(this.canvas, obstacle));
 	}.bind(this));
 	this.views.push(new RadarView(this.canvas, this.model.radar));
@@ -238,9 +238,7 @@
 
     var radar = new Radar(x, y, -Math.PI/6, Math.min(topCanvas.width/2, topCanvas.height/2) - 10, Math.PI/3);
 
-    var d = 110;
     var game = new Game(radar, vision);
-    game.addObstacle(new Obstacle(x - d, y - d, 5));
     new GameView(topCanvas, game);
 
     var body = document.getElementsByTagName('body')[0];
@@ -260,23 +258,7 @@
     });
 
     topCanvas.addEventListener('click', function(event){
-	game.addObstacle(new Obstacle(event.offsetX, event.offsetY, 5));
+	var target = event.target;
+	game.addObstacle(new Obstacle(event.clientX - target.offsetLeft, event.clientY - target.offsetTop, 5));
     });
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
