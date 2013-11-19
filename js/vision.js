@@ -26,7 +26,7 @@
     }
 
     function angle(x, y) {
-	return Math.atan2(x, y);
+	return Math.atan2(y, x);
     }
 
     function distance(dx, dy) {
@@ -184,7 +184,7 @@
 	    var d = distance(obstacle.x - radar.x, obstacle.y - radar.y);
 	    var alpha = angle(obstacle.x - radar.x, obstacle.y - radar.y) - radar.heading;
 	    if (- radar.halfAngle <= alpha && alpha <= radar.halfAngle && d <= radar.radius) {
-		var dalpha = Math.acos(d/radar.radius);
+		var dalpha = Math.atan(obstacle.radius/d);
 		visibles.push(function(angle){
 		    if (alpha - dalpha <= angle && angle <= alpha + dalpha) {
 			return 1 - d/radar.radius;
@@ -195,11 +195,11 @@
 	});
 	var angles = [];
 	var step = Math.PI/180;
-	for (var alpha = -radar.halfAngle; alpha < radar.halfAngle; alpha += step) {
-	    angles.push(alpha);
+	for (var beta = -radar.halfAngle; beta < radar.halfAngle; beta += step) {
+	    angles.push(beta);
 	}
-	var data = angles.map(function(alpha){
-	    return Math.max.apply(null, visibles.map(function(f){ return f(alpha) }));
+	var data = angles.map(function(zeta){
+	    return Math.max.apply(null, visibles.map(function(f){ return f(zeta) }));
 	});
 	vision.load(data);
     }
@@ -233,10 +233,14 @@
 
     var topCanvas = document.getElementById('top');
 
-    var radar = new Radar(topCanvas.width/2, topCanvas.height/2, -Math.PI/6, Math.min(topCanvas.width/2, topCanvas.height/2) - 10, Math.PI/3);
+    var x = topCanvas.width/2;
+    var y = topCanvas.height/2
 
+    var radar = new Radar(x, y, -Math.PI/6, Math.min(topCanvas.width/2, topCanvas.height/2) - 10, Math.PI/3);
+
+    var d = 110;
     var game = new Game(radar, vision);
-    game.addObstacle(new Obstacle(100, 100, 5));
+    game.addObstacle(new Obstacle(x - d, y - d, 5));
     new GameView(topCanvas, game);
 
     var body = document.getElementsByTagName('body')[0];
@@ -259,3 +263,20 @@
 	game.addObstacle(new Obstacle(event.offsetX, event.offsetY, 5));
     });
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
