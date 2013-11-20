@@ -138,13 +138,27 @@
 	context.fillRect(0, 0, this.width, this.height);
     }
 
-    var Obstacle = function(x, y, radius){
+    var Obstacle = function(x, y, radius, width, height){
 	Listener.call(this);
 	this.x = x;
 	this.y = y;
 	this.radius = radius;
+	this.vx = 1;
+	this.vy = 1;
+	this.width = width;
+	this.height = height;
     }
     Obstacle.prototype = new Listener();
+    Obstacle.prototype.move = function(){
+	this.x += this.vx;
+	this.y += this.vy;
+	this.normalize();
+	this.notifyAll();
+    }
+    Obstacle.prototype.normalize = function(){
+	this.x = (this.x % this.width);
+	this.y = (this.y % this.height);
+    }
 
     var ObstacleView = function(canvas, model){
 	this.context = canvas.getContext('2d');
@@ -203,6 +217,12 @@
 	});
 	vision.load(data);
     }
+    Game.prototype.move = function(){
+	this.obstacles.forEach(function(obstacle){
+	    obstacle.move();
+	});
+	this.determineVision();
+    }
 
     var GameView = function(canvas, model){
 	this.views = [];
@@ -217,6 +237,7 @@
 	this.views = [];
 	this.views.push(new BackgroundView(this.canvas));
 	this.model.obstacles.forEach(function(obstacle, index){
+	    obstacle.addListener(this.update.bind(this));
 	    this.views.push(new ObstacleView(this.canvas, obstacle));
 	}.bind(this));
 	this.views.push(new RadarView(this.canvas, this.model.radar));
@@ -259,6 +280,18 @@
 
     topCanvas.addEventListener('click', function(event){
 	var target = event.target;
-	game.addObstacle(new Obstacle(event.clientX - target.offsetLeft, event.clientY - target.offsetTop, 5));
+	game.addObstacle(new Obstacle(
+	    event.clientX - target.offsetLeft,
+	    event.clientY - target.offsetTop,
+	    5,
+	    topCanvas.width,
+	    topCanvas.height
+	));
     });
+
+    function loop(){
+	game.move();
+	requestAnimationFrame(loop);
+    }
+    loop();
 })();
