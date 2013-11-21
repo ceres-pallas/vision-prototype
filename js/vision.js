@@ -96,11 +96,21 @@
     Radar.prototype = new Listener();
     Radar.prototype.left = function(){
 	this.heading -= this.delta;
+	this.normalize();
 	this.notifyAll();
     }
     Radar.prototype.right = function(){
 	this.heading += this.delta;
+	this.normalize();
 	this.notifyAll();
+    }
+    Radar.prototype.normalize = function(){
+	while (this.heading < -Math.PI) {
+	    this.heading += 2 * Math.PI;
+	}
+	while (this.heading > Math.PI) {
+	    this.heading -= 2 * Math.PI;
+	}
     }
 
     var RadarView = function(canvas, model){
